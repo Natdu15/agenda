@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#00f5d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NEXUS">
+<meta name="description" content="Agenda gamer — Missions, Raids, RDV, Rappels">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<title>NEXUS.AGENDA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<style>
+/* ── RESET & VARS ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --c1:#00f5d4; --c2:#f72585; --c3:#7209b7; --c4:#4cc9f0;
+  --bg:#050a0f; --bg2:#0a1520; --bg3:#0f1f30;
+  --card:#0d1b2a; --card2:#111d2c;
+  --text:#e0f4ff; --text2:#7bb8d4; --text3:#3a6a8a;
+  --border:rgba(0,245,212,0.18); --border2:rgba(0,245,212,0.5);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{
+  color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;
+  display:flex;flex-direction:column;max-width:480px;margin:0 auto;
+  position:relative;overflow:hidden;
+}
+/* scanlines */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+  padding:max(env(safe-area-inset-top),12px) 16px 8px;
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--c1);letter-spacing:3px;text-shadow:0 0 20px rgba(0,245,212,0.4)}
+.logo span{color:var(--c2)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--c1);box-shadow:0 0 8px var(--c1);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#live-time{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);letter-spacing:1px}
+#hdr-date{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.5px}
+
+/* ── NAV ── */
+nav{
+  display:flex;background:var(--bg2);border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+}
+nav::-webkit-scrollbar{display:none}
+.nb{
+  font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;
+  padding:10px 14px;border:none;border-bottom:2px solid transparent;
+  background:transparent;color:var(--text3);cursor:pointer;white-space:nowrap;
+  transition:all .2s;position:relative;flex-shrink:0;
+}
+.nb.active{color:var(--c1);border-bottom-color:var(--c1)}
+.nb:not(.active):hover{color:var(--text2)}
+.badge{
+  position:absolute;top:5px;right:4px;background:var(--c2);color:#fff;
+  font-size:7px;min-width:13px;height:13px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;padding:0 2px;
+  font-family:'Share Tech Mono',monospace;pointer-events:none;
+}
+
+/* ── MAIN SCROLL ── */
+.main{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:14px 14px max(env(safe-area-inset-bottom),80px);
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  -webkit-overflow-scrolling:touch;
+}
+.main::-webkit-scrollbar{width:3px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.screen{display:none;flex-direction:column;gap:12px}
+.screen.active{display:flex}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:4px;
+  padding:14px;position:relative;overflow:hidden;
+}
+.card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c1),transparent);
+}
+.card-title{
+  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--c1);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title i{font-size:14px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--card2);border:1px solid var(--border);border-radius:3px;padding:12px;text-align:center}
+.stat-n{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:var(--c1);line-height:1}
+.stat-l{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;margin-top:4px}
+
+/* ── EVENT ITEM ── */
+.ev-item{
+  background:var(--card2);border:1px solid var(--border);border-radius:3px;
+  padding:11px 11px 10px 14px;margin-bottom:8px;cursor:pointer;
+  transition:border-color .15s;position:relative;overflow:hidden;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.ev-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ev-item.c-rdv::before{background:var(--c1)}
+.ev-item.c-mission::before{background:var(--c2)}
+.ev-item.c-raid::before{background:var(--c3)}
+.ev-item.c-patch::before{background:var(--c4)}
+.ev-item:hover{border-color:var(--border2)}
+.ev-body{flex:1;min-width:0}
+.ev-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:5px;word-break:break-word}
+.ev-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.ev-time{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--c1)}
+.ev-dur{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3)}
+.ev-cat{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 6px;border-radius:2px;text-transform:uppercase;letter-spacing:1px}
+.ev-cat.c-rdv{background:rgba(0,245,212,.1);color:var(--c1);border:1px solid rgba(0,245,212,.3)}
+.ev-cat.c-mission{background:rgba(247,37,133,.12);color:var(--c2);border:1px solid rgba(247,37,133,.3)}
+.ev-cat.c-raid{background:rgba(114,9,183,.15);color:#b56cff;border:1px solid rgba(114,9,183,.3)}
+.ev-cat.c-patch{background:rgba(76,201,240,.1);color:var(--c4);border:1px solid rgba(76,201,240,.3)}
+.ev-rem{font-family:'Share Tech Mono',monospace;font-size:9px;color:#f0c040}
+.ev-notes{font-size:12px;color:var(--text3);margin-top:5px;font-style:italic;word-break:break-word}
+.ev-del{
+  background:transparent;border:none;color:var(--text3);cursor:pointer;
+  padding:4px;border-radius:2px;transition:color .15s;flex-shrink:0;
+  font-size:18px;line-height:1;margin-top:-2px;
+}
+.ev-del:hover{color:var(--c2)}
+.no-ev{
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);
+  text-align:center;padding:22px 0;letter-spacing:1px;
+}
+
+/* ── CALENDAR ── */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-m{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--text);letter-spacing:2px}
+.cal-btn{
+  background:transparent;border:1px solid var(--border);color:var(--c1);
+  width:32px;height:32px;cursor:pointer;font-size:18px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.cal-btn:hover{background:var(--c1);color:var(--bg)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dn{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text3);text-align:center;padding:4px 0;letter-spacing:1px}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2);
+  cursor:pointer;border-radius:2px;border:1px solid transparent;transition:all .15s;position:relative;
+}
+.cal-day:hover{border-color:var(--border2);color:var(--c1)}
+.cal-day.today{border-color:var(--c1);color:var(--c1);background:rgba(0,245,212,.06)}
+.cal-day.selected{background:var(--c1);color:var(--bg);font-weight:700}
+.cal-day.has-ev::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--c2)}
+.cal-day.other{color:var(--text3);opacity:.3;pointer-events:none}
+
+/* ── FORM ── */
+.fg{margin-bottom:11px}
+.fl{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;color:var(--c1);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;display:block}
+.fi{
+  width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:'Rajdhani',sans-serif;font-size:15px;padding:9px 11px;border-radius:3px;
+  outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;
+}
+.fi:focus{border-color:var(--c1);box-shadow:0 0 0 2px rgba(0,245,212,.1)}
+.fi::placeholder{color:var(--text3)}
+select.fi{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300f5d4' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;
+}
+select.fi option{background:#0a1520;color:var(--text)}
+textarea.fi{resize:none;line-height:1.5}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type="date"],input[type="time"]{color-scheme:dark}
+
+/* ── BUTTONS ── */
+.btn{
+  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;
+  padding:11px 16px;border-radius:3px;cursor:pointer;text-transform:uppercase;
+  transition:all .2s;border:none;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  -webkit-appearance:none;
+}
+.btn i{font-size:15px}
+.btn-p{background:var(--c1);color:var(--bg)}
+.btn-p:active{transform:scale(.98)}
+.btn-s{background:transparent;border:1px solid var(--border2);color:var(--c1)}
+.btn-s:hover{background:rgba(0,245,212,.08)}
+.btn-d{background:transparent;border:1px solid rgba(247,37,133,.5);color:var(--c2);margin-top:8px}
+.btn-d:hover{background:rgba(247,37,133,.1)}
+.btn-v{background:transparent;border:2px solid var(--c2);color:var(--c2);padding:13px 16px;gap:10px}
+.btn-v.rec{background:rgba(247,37,133,.08);animation:vpulse 1s infinite}
+@keyframes vpulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 18px rgba(247,37,133,.4)}}
+.vdot{width:9px;height:9px;border-radius:50%;background:var(--c2);flex-shrink:0}
+.btn-v.rec .vdot{animation:blink .5s infinite}
+.vresult{
+  background:var(--bg3);border:1px dashed var(--border2);border-radius:3px;
+  padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--c1);min-height:38px;margin-top:10px;letter-spacing:.5px;
+  display:none;word-break:break-word;line-height:1.6;
+}
+.vresult.show{display:block}
+
+/* ── TAGS ── */
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{
+  font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;
+  border-radius:2px;border:1px solid var(--border);color:var(--text2);
+  cursor:pointer;letter-spacing:1px;transition:all .2s;
+}
+.tag.on,.tag:hover{border-color:var(--c1);color:var(--c1);background:rgba(0,245,212,.07)}
+
+/* ── NOTIFS ── */
+.notif{background:var(--card2);border:1px solid var(--border);border-radius:3px;padding:12px;margin-bottom:8px;position:relative;cursor:pointer}
+.notif.unread{border-color:rgba(247,37,133,.35)}
+.notif.unread::after{content:'';position:absolute;top:10px;right:10px;width:6px;height:6px;border-radius:50%;background:var(--c2);box-shadow:0 0 8px var(--c2)}
+.notif-t{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:4px}
+.notif-b{font-size:12px;color:var(--text2);margin-bottom:4px}
+.notif-d{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3)}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(5,10,15,.93);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);border-bottom:none;
+  border-radius:6px 6px 0 0;width:100%;max-width:480px;padding:20px;
+  max-height:90vh;overflow-y:auto;animation:slideup .25s ease;
+  padding-bottom:max(env(safe-area-inset-bottom),20px);position:relative;
+}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:900;color:var(--c1);
+  letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;
+  padding:0 34px 12px 0;border-bottom:1px solid var(--border);word-break:break-word;
+}
+.modal-x{
+  position:absolute;top:16px;right:16px;background:transparent;border:1px solid var(--border);
+  color:var(--text2);width:30px;height:30px;cursor:pointer;border-radius:2px;
+  font-size:18px;display:flex;align-items:center;justify-content:center;
+}
+.modal-x:hover{border-color:var(--c2);color:var(--c2)}
+.mrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.mrow:last-child{border-bottom:none}
+.mkey{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.mval{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);text-align:right}
+.mnotes{font-size:13px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.5;font-style:italic}
+
+/* ── CONFIRM BOX ── */
+.cbox{background:rgba(247,37,133,.07);border:1px solid rgba(247,37,133,.4);border-radius:3px;padding:14px;margin-bottom:12px}
+.cmsg{font-size:14px;color:var(--text);margin-bottom:12px;line-height:1.5}
+.cbtns{display:flex;gap:8px}
+.cbtns button{flex:1;padding:9px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;border-radius:3px;border:none}
+.cy{background:var(--c2);color:#fff}
+.cn{background:transparent;border:1px solid var(--border2)!important;color:var(--c1)}
+
+/* ── UPCOMING ── */
+.up-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.up-item:last-child{border-bottom:none}
+.up-date{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);min-width:44px;text-align:right;padding-top:2px;line-height:1.5}
+.up-bar{width:2px;background:var(--border);border-radius:1px;position:relative;flex-shrink:0;margin:2px 0}
+.up-bar::before{content:'';position:absolute;top:3px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--c1);border:2px solid var(--bg2);box-shadow:0 0 6px var(--c1)}
+.up-info{flex:1}
+.up-name{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:3px}
+.up-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+/* ── FAB ── */
+.fab{
+  position:fixed;bottom:max(env(safe-area-inset-bottom),18px);right:18px;
+  width:54px;height:54px;border-radius:50%;background:var(--c1);color:var(--bg);
+  border:none;cursor:pointer;font-size:28px;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 0 24px rgba(0,245,212,.5);z-index:100;
+  transition:all .2s;font-weight:900;-webkit-appearance:none;
+}
+.fab:active{transform:scale(.92)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--bg2);border:1px solid var(--c1);border-radius:3px;
+  padding:9px 18px;font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--c1);letter-spacing:1px;z-index:400;opacity:0;transition:all .3s;
+  white-space:nowrap;pointer-events:none;box-shadow:0 0 18px rgba(0,245,212,.2);
+  max-width:88vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:var(--c2);color:var(--c2)}
+
+/* ── INSTALL BANNER ── */
+.ibanner{
+  background:rgba(0,245,212,.08);border:1px solid var(--border2);border-radius:3px;
+  padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:4px;
+}
+.ibanner p{flex:1;font-size:12px;color:var(--text2);line-height:1.4}
+.ibanner .ibtn{
+  font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;
+  padding:7px 10px;background:var(--c1);color:var(--bg);border:none;
+  border-radius:2px;cursor:pointer;white-space:nowrap;
+}
+.ibanner .iclose{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="logo">NEXUS<span>.</span>AGENDA</div>
+    <div class="hdr-right">
+      <div class="dot" title="Système actif"></div>
+      <span id="live-time"></span>
+    </div>
+  </div>
+  <div id="hdr-date"></div>
+</header>
+
+<!-- NAV -->
+<nav role="navigation" aria-label="Navigation principale">
+  <button class="nb active" onclick="tab('dashboard')" id="t-dashboard"><i class="ti ti-layout-dashboard"></i> HUD</button>
+  <button class="nb" onclick="tab('calendar')" id="t-calendar"><i class="ti ti-calendar"></i> CAL</button>
+  <button class="nb" onclick="tab('events')" id="t-events"><i class="ti ti-list"></i> EVENTS<span class="badge" id="b-events">0</span></button>
+  <button class="nb" onclick="tab('add')" id="t-add"><i class="ti ti-plus"></i> AJOUTER</button>
+  <button class="nb" onclick="tab('notifs')" id="t-notifs"><i class="ti ti-bell"></i> NOTIFS<span class="badge" id="b-notifs">0</span></button>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="main">
+
+  <!-- DASHBOARD -->
+  <section class="screen active" id="s-dashboard">
+    <div id="install-wrap"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-cpu"></i> Statut système</div>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="st-today">0</div><div class="stat-l">Aujourd'hui</div></div>
+        <div class="stat"><div class="stat-n" id="st-week">0</div><div class="stat-l">Cette semaine</div></div>
+        <div class="stat"><div class="stat-n" id="st-soon">0</div><div class="stat-l">À venir</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-rocket"></i> Prochaines missions</div>
+      <div id="upcoming"><div class="no-ev">[ AUCUNE MISSION CHARGÉE ]</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-alert-triangle"></i> Alertes actives</div>
+      <div id="dash-notifs"><div class="no-ev">[ AUCUNE ALERTE ]</div></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="screen" id="s-calendar">
+    <div class="card">
+      <div class="cal-hdr">
+        <button class="cal-btn" onclick="moveMo(-1)" aria-label="Mois précédent">‹</button>
+        <div class="cal-m" id="cal-label"></div>
+        <button class="cal-btn" onclick="moveMo(1)" aria-label="Mois suivant">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" id="day-label"><i class="ti ti-calendar-event"></i> Events du jour</div>
+      <div id="day-evs"><div class="no-ev">[ SÉLECTIONNER UNE DATE ]</div></div>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section class="screen" id="s-events">
+    <div class="card" style="padding:12px 14px">
+      <div class="card-title" style="margin-bottom:6px"><i class="ti ti-filter"></i> Filtrer</div>
+      <div class="tags">
+        <span class="tag on" onclick="filterEvts('all',this)" role="button" tabindex="0">Tous</span>
+        <span class="tag" onclick="filterEvts('rdv',this)" role="button" tabindex="0">RDV</span>
+        <span class="tag" onclick="filterEvts('mission',this)" role="button" tabindex="0">Mission</span>
+        <span class="tag" onclick="filterEvts('raid',this)" role="button" tabindex="0">Raid</span>
+        <span class="tag" onclick="filterEvts('patch',this)" role="button" tabindex="0">Patch</span>
+      </div>
+    </div>
+    <div id="ev-list"></div>
+  </section>
+
+  <!-- ADD -->
+  <section class="screen" id="s-add">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-pencil"></i> Nouvelle mission</div>
+      <div class="fg">
+        <label class="fl" for="f-name">Nom *</label>
+        <input type="text" id="f-name" class="fi" placeholder="Ex: Raid Légendaire…" autocomplete="off" autocorrect="off">
+      </div>
+      <div class="fg">
+        <label class="fl" for="f-cat">Catégorie</label>
+        <select id="f-cat" class="fi">
+          <option value="rdv">🎯 RDV / Meeting</option>
+          <option value="mission">⚔️ Mission</option>
+          <option value="raid">🏰 Raid</option>
+          <option value="patch">🔧 Patch / MAJ</option>
+        </select>
+      </div>
+      <div class="frow">
+        <div class="fg" style="margin:0">
+          <label class="fl" for="f-date">Date *</label>
+          <input type="date" id="f-date" class="fi">
+        </div>
+        <div class="fg" style="margin:0">
+          <label class="fl" for="f-time">Heure</label>
+          <input type="time" id="f-time" class="fi">
+        </div>
+      </div>
+      <div class="fg" style="margin-top:11px">
+        <label class="fl" for="f-dur">Durée</label>
+        <select id="f-dur" class="fi">
+          <option value="30">30 min</option>
+          <option value="60" selected>1h</option>
+          <option value="90">1h30</option>
+          <option value="120">2h</option>
+          <option value="180">3h</option>
+          <option value="0">Toute la journée</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl" for="f-rem">Rappel</label>
+        <select id="f-rem" class="fi">
+          <option value="0">Pas de rappel</option>
+          <option value="15">15 min avant</option>
+          <option value="60">1h avant</option>
+          <option value="1440" selected>1 jour avant</option>
+          <option value="4320">3 jours avant</option>
+          <option value="10080">1 semaine avant</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl" for="f-notes">Notes</label>
+        <textarea id="f-notes" class="fi" rows="2" placeholder="Détails, coordonnées…"></textarea>
+      </div>
+      <button class="btn btn-p" onclick="saveEvent()">
+        <i class="ti ti-device-floppy"></i> ENREGISTRER
+      </button>
+    </div>
+
+    <!-- VOICE -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-microphone"></i> Saisie vocale</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+        Exemples :<br>
+        <span style="color:var(--c1)">"RDV médecin 15 juin à 14h"</span><br>
+        <span style="color:var(--c1)">"Raid vendredi 20h"</span><br>
+        <span style="color:var(--c1)">"Patch mardi matin"</span>
+      </p>
+      <button class="btn btn-v" id="voice-btn" onclick="toggleVoice()">
+        <div class="vdot"></div>
+        <span id="voice-lbl">ACTIVER LE MIC</span>
+      </button>
+      <div class="vresult" id="voice-res" role="status" aria-live="polite"></div>
+      <div id="voice-info" style="font-family:'Share Tech Mono',monospace;font-size:9px;margin-top:10px;line-height:1.6"></div>
+    </div>
+  </section>
+
+  <!-- NOTIFS -->
+  <section class="screen" id="s-notifs">
+    <div class="card" style="padding:12px 14px">
+      <div class="card-title" style="margin-bottom:6px"><i class="ti ti-settings"></i> Centre de contrôle</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Rappels automatiques selon tes events. Active les notifications pour les alertes en arrière-plan.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-s" onclick="checkRem(true)" style="padding:8px 10px;font-size:8px;flex:1">
+          <i class="ti ti-refresh"></i> VÉRIFIER
+        </button>
+        <button class="btn btn-s" onclick="reqNotif()" style="padding:8px 10px;font-size:8px;flex:1">
+          <i class="ti ti-bell"></i> ACTIVER NOTIFS
+        </button>
+        <button class="btn btn-d" onclick="clearNotifs()" style="padding:8px 10px;font-size:8px;flex:1;margin:0">
+          <i class="ti ti-trash"></i> EFFACER
+        </button>
+      </div>
+    </div>
+    <div id="notifs-list"></div>
+  </section>
+
+</main>
+
+<!-- FAB -->
+<button class="fab" onclick="tab('add')" title="Ajouter un event" aria-label="Ajouter un event">+</button>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Détail event">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()" aria-label="Fermer">✕</button>
+    <div class="modal-title" id="m-title"></div>
+    <div id="m-body"></div>
+    <div id="m-confirm"></div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-d" id="m-del"><i class="ti ti-trash"></i> SUPPRIMER CET EVENT</button>
+      <button class="btn btn-s" onclick="closeModal()"><i class="ti ti-arrow-left"></i> FERMER</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+<script>
+'use strict';
+
+// ── CONSTANTES ────────────────────────────────────────────────
+const MONTHS = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
+const DNAMES  = ['LUN','MAR','MER','JEU','VEN','SAM','DIM'];
+const CATS    = {rdv:'RDV', mission:'Mission', raid:'Raid', patch:'Patch'};
+const REM_L   = {15:'15 min avant', 60:'1h avant', 1440:'1 jour avant', 4320:'3 jours avant', 10080:'1 semaine avant'};
+const REM_S   = {15:'15mn', 60:'1h', 1440:'1j', 4320:'3j', 10080:'1sem'};
+
+// ── STATE ─────────────────────────────────────────────────────
+let events = [], notifs = [];
+let cMo = new Date().getMonth(), cYr = new Date().getFullYear();
+let selDay = null, curFilter = 'all', openId = null;
+let recog = null, isRec = false;
+
+// ── STORAGE ───────────────────────────────────────────────────
+function load() {
+  try { events = JSON.parse(localStorage.getItem('nx_evs') || '[]'); } catch { events = []; }
+  try { notifs = JSON.parse(localStorage.getItem('nx_nts') || '[]'); } catch { notifs = []; }
+}
+function save() {
+  localStorage.setItem('nx_evs', JSON.stringify(events));
+  localStorage.setItem('nx_nts', JSON.stringify(notifs));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// ── DOM HELPERS ───────────────────────────────────────────────
+const G  = id => document.getElementById(id);
+const ds = d  => d.toISOString().slice(0, 10);
+const td = () => ds(new Date());
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function durLabel(m) {
+  if (!m) return 'Journée';
+  if (m < 60) return m + ' min';
+  const h = m / 60;
+  return (h === Math.floor(h) ? h : h.toFixed(1)) + 'h';
+}
+function minLeftFmt(m) {
+  if (m < 60)   return 'Dans ' + m + ' min';
+  if (m < 1440) return 'Dans ' + Math.round(m / 60) + 'h';
+  return 'Dans ' + Math.round(m / 1440) + ' jour(s)';
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────
+function tick() {
+  const n = new Date();
+  const t = G('live-time'), d = G('hdr-date');
+  if (t) t.textContent = n.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  if (d) d.textContent = n.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).toUpperCase();
+}
+setInterval(tick, 1000); tick();
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, isErr = false) {
+  const t = G('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function tab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  G('s-' + name).classList.add('active');
+  G('t-' + name).classList.add('active');
+  G('main').scrollTop = 0;
+  if (name === 'dashboard') renderDash();
+  if (name === 'calendar')  renderCal();
+  if (name === 'events')    renderEvts();
+  if (name === 'notifs')    renderNotifs();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDash() {
+  const now = td(), wk = ds(new Date(Date.now() + 7 * 864e5));
+  G('st-total').textContent = events.length;
+  G('st-today').textContent = events.filter(e => e.date === now).length;
+  G('st-week').textContent  = events.filter(e => e.date >= now && e.date <= wk).length;
+  G('st-soon').textContent  = events.filter(e => e.date >= now).length;
+  G('b-events').textContent = events.length;
+
+  // upcoming
+  const up = events.filter(e => e.date >= now)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+    .slice(0, 5);
+  G('upcoming').innerHTML = up.length
+    ? up.map(e => {
+        const dt  = new Date(e.date);
+        const tom = ds(new Date(Date.now() + 864e5));
+        const dl  = e.date === now ? 'Auj.' : e.date === tom ? 'Dem.' : dt.getDate() + '/' + (dt.getMonth() + 1);
+        return `<div class="up-item" onclick="openDet('${e.id}')">
+          <div class="up-date">${dl}${e.time ? '<br>' + e.time : ''}</div>
+          <div class="up-bar"></div>
+          <div class="up-info">
+            <div class="up-name">${esc(e.name)}</div>
+            <div class="up-sub">
+              <span class="ev-cat c-${e.cat}">${CATS[e.cat] || e.cat}</span>
+              ${e.reminder ? `<span class="ev-rem">⚡${REM_S[e.reminder] || e.reminder + 'mn'}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="no-ev">[ AUCUNE MISSION À VENIR ]</div>';
+
+  // alerts preview
+  const unread = notifs.filter(n => !n.read).length;
+  G('b-notifs').textContent = unread || '0';
+  const rn = [...notifs].reverse().slice(0, 3);
+  G('dash-notifs').innerHTML = rn.length
+    ? rn.map(n => `
+      <div style="padding:7px 0;border-bottom:1px solid var(--border)">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;color:${n.read ? 'var(--text3)' : 'var(--c2)'}">
+          ${n.read ? '' : '● '}${esc(n.title)}
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${esc(n.body)}</div>
+      </div>`).join('')
+    : '<div class="no-ev">[ AUCUNE ALERTE ]</div>';
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────
+function renderCal() {
+  G('cal-label').textContent = MONTHS[cMo] + ' ' + cYr;
+  const grid = G('cal-grid'); grid.innerHTML = '';
+  DNAMES.forEach(d => { const e = document.createElement('div'); e.className = 'cal-dn'; e.textContent = d; grid.appendChild(e); });
+
+  const start  = (new Date(cYr, cMo, 1).getDay() + 6) % 7;
+  const dim    = new Date(cYr, cMo + 1, 0).getDate();
+  const prevD  = new Date(cYr, cMo, 0).getDate();
+  const today  = td();
+
+  for (let i = 0; i < start; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other'; el.textContent = prevD - start + 1 + i; grid.appendChild(el);
+  }
+  for (let d = 1; d <= dim; d++) {
+    const dStr = `${cYr}-${String(cMo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    el.textContent = d;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', 'Jour ' + dStr);
+    if (dStr === today)  el.classList.add('today');
+    if (dStr === selDay) el.classList.add('selected');
+    if (events.some(e => e.date === dStr)) el.classList.add('has-ev');
+    el.onclick = () => selDate(dStr, d);
+    grid.appendChild(el);
+  }
+  // fill remaining cells only if < 7 to avoid extra row
+  const rem = 42 - start - dim;
+  for (let i = 1; i <= rem && rem < 7; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other'; el.textContent = i; grid.appendChild(el);
+  }
+}
+function moveMo(dir) {
+  cMo += dir;
+  if (cMo > 11) { cMo = 0; cYr++; }
+  if (cMo < 0)  { cMo = 11; cYr--; }
+  renderCal();
+}
+function selDate(dStr, d) {
+  selDay = dStr; renderCal();
+  G('day-label').innerHTML = `<i class="ti ti-calendar-event"></i> Events du ${d} ${MONTHS[cMo].toLowerCase()}`;
+  const dayEvs = events.filter(e => e.date === dStr).sort((a, b) => a.time.localeCompare(b.time));
+  G('day-evs').innerHTML = dayEvs.length ? dayEvs.map(e => evHTML(e)).join('') : '<div class="no-ev">[ AUCUN EVENT CE JOUR ]</div>';
+}
+
+// ── EVENTS LIST ───────────────────────────────────────────────
+function renderEvts() {
+  const list = events
+    .filter(e => curFilter === 'all' || e.cat === curFilter)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  G('ev-list').innerHTML = list.length
+    ? list.map(e => evHTML(e)).join('')
+    : '<div class="no-ev" style="padding:24px 0">[ AUCUN EVENT ]</div>';
+}
+function filterEvts(f, btn) {
+  curFilter = f;
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('on'));
+  btn.classList.add('on');
+  renderEvts();
+}
+
+function evHTML(e) {
+  return `<div class="ev-item c-${e.cat}" onclick="openDet('${e.id}')" role="button">
+    <div class="ev-body">
+      <div class="ev-name">${esc(e.name)}</div>
+      <div class="ev-meta">
+        ${e.time ? `<span class="ev-time">${e.time}</span>` : ''}
+        ${e.duration > 0 ? `<span class="ev-dur">${durLabel(e.duration)}</span>` : ''}
+        <span class="ev-cat c-${e.cat}">${CATS[e.cat] || e.cat}</span>
+        ${e.reminder > 0 ? `<span class="ev-rem">⚡${REM_S[e.reminder] || e.reminder + 'mn'}</span>` : ''}
+      </div>
+      ${e.notes ? `<div class="ev-notes">${esc(e.notes)}</div>` : ''}
+    </div>
+    <button class="ev-del" onclick="event.stopPropagation(); confirmDel('${e.id}', this)" aria-label="Supprimer ${esc(e.name)}">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>`;
+}
+
+// ── SAVE ──────────────────────────────────────────────────────
+function saveEvent() {
+  const name = G('f-name').value.trim();
+  const date = G('f-date').value;
+  if (!name) { toast('⚠ Le nom est requis !', true); G('f-name').focus(); return; }
+  if (!date) { toast('⚠ La date est requise !', true); G('f-date').focus(); return; }
+
+  const ev = {
+    id: uid(), name, date,
+    time:     G('f-time').value,
+    cat:      G('f-cat').value,
+    duration: parseInt(G('f-dur').value)  || 0,
+    reminder: parseInt(G('f-rem').value)  || 0,
+    notes:    G('f-notes').value.trim()
+  };
+  events.push(ev); save();
+
+  // reset form
+  G('f-name').value = ''; G('f-time').value = ''; G('f-notes').value = '';
+  G('f-dur').value  = '60'; G('f-rem').value = '1440';
+
+  toast('✓ EVENT ENREGISTRÉ !');
+  renderDash();
+  scheduleRem(ev);
+}
+
+// ── DELETE ────────────────────────────────────────────────────
+function confirmDel(id, btn) {
+  document.querySelectorAll('.icfm').forEach(el => el.remove());
+  const ev = events.find(e => e.id === id); if (!ev) return;
+  const box = document.createElement('div');
+  box.className = 'icfm';
+  box.style.cssText = 'background:rgba(247,37,133,.08);border:1px solid rgba(247,37,133,.4);border-radius:3px;padding:12px;margin-bottom:8px';
+  box.innerHTML = `
+    <div style="font-size:13px;color:var(--text);margin-bottom:10px">
+      Supprimer <strong style="color:var(--c2)">${esc(ev.name)}</strong> ?
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="doDelete('${id}')"
+        style="flex:1;padding:9px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;border-radius:3px;border:none;background:var(--c2);color:#fff">
+        ✓ SUPPRIMER
+      </button>
+      <button onclick="this.closest('.icfm').remove()"
+        style="flex:1;padding:9px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;border-radius:3px;background:transparent;
+               border:1px solid var(--border2);color:var(--c1)">
+        ✕ ANNULER
+      </button>
+    </div>`;
+  btn.closest('.ev-item').insertAdjacentElement('afterend', box);
+}
+
+function doDelete(id) {
+  events = events.filter(e => e.id !== id);
+  notifs = notifs.filter(n => n.evId !== id);
+  save();
+  toast('◌ Event supprimé');
+  closeModal();
+  document.querySelectorAll('.icfm').forEach(el => el.remove());
+  renderDash(); renderEvts(); renderCal();
+  if (selDay) selDate(selDay, parseInt(selDay.slice(8)));
+}
+
+// ── MODAL DETAIL ──────────────────────────────────────────────
+function openDet(id) {
+  const ev = events.find(e => e.id === id); if (!ev) return;
+  openId = id;
+  G('m-title').textContent = ev.name.toUpperCase();
+  G('m-confirm').innerHTML = '';
+  G('m-body').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="ev-cat c-${ev.cat}">${CATS[ev.cat] || ev.cat}</span>
+      ${ev.time     ? `<span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--c1)">${ev.time}</span>` : ''}
+      ${ev.duration > 0 ? `<span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2)">${durLabel(ev.duration)}</span>` : ''}
+    </div>
+    <div>
+      <div class="mrow"><span class="mkey">Date</span><span class="mval">${ev.date}</span></div>
+      <div class="mrow">
+        <span class="mkey">Rappel</span>
+        <span class="mval" style="color:${ev.reminder > 0 ? 'var(--c1)' : 'var(--text3)'}">
+          ${ev.reminder > 0 ? '⚡ ' + (REM_L[ev.reminder] || ev.reminder + ' min avant') : 'Aucun'}
+        </span>
+      </div>
+    </div>
+    ${ev.notes ? `<div class="mnotes">${esc(ev.notes)}</div>` : ''}`;
+
+  G('m-del').onclick = () => {
+    G('m-confirm').innerHTML = `<div class="cbox">
+      <div class="cmsg">Supprimer <strong style="color:var(--c2)">${esc(ev.name)}</strong> ?<br>
+        <span style="font-size:12px;color:var(--text3)">Cette action est irréversible.</span>
+      </div>
+      <div class="cbtns">
+        <button class="cy" onclick="doDelete('${id}')">✓ OUI, SUPPRIMER</button>
+        <button class="cn" onclick="G('m-confirm').innerHTML=''">✕ ANNULER</button>
+      </div>
+    </div>`;
+  };
+  G('overlay').classList.add('open');
+}
+
+function closeModal() {
+  G('overlay').classList.remove('open');
+  G('m-confirm').innerHTML = '';
+  openId = null;
+}
+G('overlay').addEventListener('click', e => { if (e.target === G('overlay')) closeModal(); });
+
+// ── REMINDERS ─────────────────────────────────────────────────
+function checkRem(manual = false) {
+  const now = new Date(); let added = 0;
+  events.forEach(ev => {
+    if (!ev.reminder) return;
+    const evD = new Date(ev.date + 'T' + (ev.time || '00:00'));
+    const minLeft = Math.floor((evD - now) / 60000);
+    if (minLeft > 0 && minLeft <= ev.reminder) {
+      const already = notifs.some(n => n.evId === ev.id && n.reminderMin === ev.reminder);
+      if (!already) {
+        notifs.push({
+          id: uid(), evId: ev.id, reminderMin: ev.reminder, read: false,
+          title: '⚡ RAPPEL: ' + ev.name,
+          body:  minLeftFmt(minLeft) + ' — ' + ev.date + (ev.time ? ' à ' + ev.time : ''),
+          ts:    Date.now()
+        });
+        added++;
+        if (Notification.permission === 'granted') {
+          new Notification('NEXUS.AGENDA — Rappel', {
+            body: ev.name + ' — ' + minLeftFmt(minLeft),
+            icon: './icon-192.png',
+            tag:  'nx-' + ev.id
+          });
+        }
+      }
+    }
+  });
+  if (added > 0) {
+    save();
+    G('b-notifs').textContent = notifs.filter(n => !n.read).length;
+    toast('⚡ ' + added + ' rappel(s) actif(s) !');
+  } else if (manual) {
+    toast('✓ Aucun nouveau rappel');
+  }
+}
+
+function scheduleRem(ev) {
+  if (!ev.reminder || !ev.date) return;
+  if (Notification.permission === 'default') Notification.requestPermission();
+  const evD  = new Date(ev.date + 'T' + (ev.time || '00:00'));
+  const delay = (evD - Date.now()) - ev.reminder * 60000;
+  if (delay > 0 && delay < 14 * 24 * 3600000) {
+    setTimeout(() => {
+      checkRem();
+      renderDash();
+      if (G('s-notifs').classList.contains('active')) renderNotifs();
+    }, delay);
+  }
+}
+
+function reqNotif() {
+  if (!('Notification' in window)) { toast('⚠ Notifications non supportées', true); return; }
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') toast('✓ Notifications activées !');
+    else toast('⚠ Permission refusée', true);
+  });
+}
+
+// ── NOTIFS PAGE ───────────────────────────────────────────────
+function renderNotifs() {
+  checkRem();
+  const list = G('notifs-list');
+  if (!notifs.length) { list.innerHTML = '<div class="no-ev" style="padding:24px 0">[ AUCUNE NOTIFICATION ]</div>'; return; }
+  list.innerHTML = [...notifs].reverse().map(n => `
+    <div class="notif${n.read ? '' : ' unread'}" onclick="markRead('${n.id}', this)">
+      <div class="notif-t">${esc(n.title)}</div>
+      <div class="notif-b">${esc(n.body)}</div>
+      <div class="notif-d">${new Date(n.ts).toLocaleString('fr-FR')}</div>
+    </div>`).join('');
+  notifs.forEach(n => n.read = true);
+  G('b-notifs').textContent = '0';
+  save();
+}
+function markRead(id, el) {
+  const n = notifs.find(n => n.id === id);
+  if (n) { n.read = true; save(); el.classList.remove('unread'); }
+}
+function clearNotifs() {
+  notifs = []; save(); renderNotifs(); G('b-notifs').textContent = '0'; toast('◌ Notifications effacées');
+}
+
+// ── VOICE ─────────────────────────────────────────────────────
+const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const hasSR    = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+
+function initVoice() {
+  const info = G('voice-info');
+  if (!isSecure) {
+    info.innerHTML = '⚠ Micro désactivé en HTTP.<br>Fonctionnera sur GitHub Pages (HTTPS).';
+    info.style.color = '#f0c040';
+    G('voice-btn').disabled = true;
+    G('voice-btn').style.opacity = '0.4';
+  } else if (!hasSR) {
+    info.innerHTML = '⚠ Non supporté — utilise Chrome ou Edge.';
+    info.style.color = 'var(--c2)';
+    G('voice-btn').disabled = true;
+    G('voice-btn').style.opacity = '0.4';
+  } else {
+    info.innerHTML = '✓ Micro prêt — Chrome / Edge recommandé.';
+    info.style.color = 'var(--c1)';
+  }
+}
+
+function toggleVoice() {
+  if (!isSecure) { toast('⚠ HTTPS requis pour le micro', true); return; }
+  if (!hasSR)    { toast('⚠ Utilise Chrome ou Edge', true); return; }
+  if (isRec) { recog && recog.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recog = new SR();
+  recog.lang = 'fr-FR'; recog.continuous = false; recog.interimResults = false;
+
+  const btn = G('voice-btn'), lbl = G('voice-lbl');
+  isRec = true; btn.classList.add('rec'); lbl.textContent = 'EN ÉCOUTE…';
+
+  recog.onresult = ev => {
+    const t = ev.results[0][0].transcript;
+    const vr = G('voice-res'); vr.textContent = '« ' + t + ' »'; vr.classList.add('show');
+    parseVoice(t);
+    isRec = false; btn.classList.remove('rec'); lbl.textContent = 'ACTIVER LE MIC';
+  };
+  recog.onerror = ev => {
+    isRec = false; btn.classList.remove('rec'); lbl.textContent = 'ACTIVER LE MIC';
+    const ERRS = {
+      'not-allowed': 'Permission micro refusée — autorisez dans les paramètres',
+      'network':     'Erreur réseau',
+      'no-speech':   'Aucune parole détectée',
+      'aborted':     'Arrêté'
+    };
+    toast('⚠ ' + (ERRS[ev.error] || 'Erreur: ' + ev.error), true);
+  };
+  recog.onend = () => { isRec = false; btn.classList.remove('rec'); lbl.textContent = 'ACTIVER LE MIC'; };
+
+  try { recog.start(); }
+  catch { toast('⚠ Impossible de démarrer le micro', true); isRec = false; btn.classList.remove('rec'); lbl.textContent = 'ACTIVER LE MIC'; }
+}
+
+function parseVoice(text) {
+  const l = text.toLowerCase();
+  let cat = 'rdv', name = text, date = '', time = '';
+
+  if (/raid|dungeon|boss|donjon/i.test(l))         cat = 'raid';
+  else if (/patch|mise à jour|update|maj/i.test(l)) cat = 'patch';
+  else if (/mission|quête|quest/i.test(l))          cat = 'mission';
+
+  const MONS = {
+    'janvier':'01','février':'02','fevrier':'02','mars':'03','avril':'04',
+    'mai':'05','juin':'06','juillet':'07','août':'08','aout':'08',
+    'septembre':'09','octobre':'10','novembre':'11','décembre':'12','decembre':'12'
+  };
+  const DAYS = {lundi:1, mardi:2, mercredi:3, jeudi:4, vendredi:5, samedi:6, dimanche:0};
+
+  // day + month  e.g. "15 juin"
+  for (const [m, v] of Object.entries(MONS)) {
+    const r = new RegExp('(\\d{1,2})\\s+' + m, 'i');
+    const match = l.match(r);
+    if (match) {
+      date = new Date().getFullYear() + '-' + v + '-' + String(parseInt(match[1])).padStart(2, '0');
+      name = text.replace(new RegExp(match[0], 'gi'), '').trim();
+      break;
+    }
+  }
+  // day of week e.g. "vendredi"
+  if (!date) {
+    for (const [d, v] of Object.entries(DAYS)) {
+      if (l.includes(d)) {
+        const now = new Date(), diff = (v - now.getDay() + 7) % 7 || 7;
+        date = ds(new Date(now.getTime() + diff * 864e5));
+        name = text.replace(new RegExp(d, 'gi'), '').trim();
+        break;
+      }
+    }
+  }
+  // today / tomorrow
+  if (!date && /aujourd'?hui|ce soir|ce matin/i.test(l)) {
+    date = td(); name = text.replace(/aujourd'?hui|ce soir|ce matin/gi, '').trim();
+  }
+  if (!date && /demain/i.test(l)) {
+    date = ds(new Date(Date.now() + 864e5)); name = text.replace(/demain/gi, '').trim();
+  }
+  // time  e.g. "14h30" or "14:30"
+  const tm = l.match(/(\d{1,2})[h:](\d{0,2})/i);
+  if (tm) {
+    time = String(parseInt(tm[1])).padStart(2, '0') + ':' + (tm[2] ? String(parseInt(tm[2]) || 0).padStart(2, '0') : '00');
+    name = name.replace(new RegExp(tm[0], 'gi'), '').trim();
+  }
+  // clean noise words
+  name = name.replace(/\s+(le|la|à|de|du|pour|un|une|,)\s*/gi, ' ').replace(/\s+/g, ' ').trim() || text;
+
+  G('f-name').value = name;
+  G('f-cat').value  = cat;
+  if (date) G('f-date').value = date;
+  if (time) G('f-time').value = time;
+  toast('✓ Champs remplis automatiquement !');
+}
+
+// ── PWA INSTALL BANNER ────────────────────────────────────────
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+  if (!localStorage.getItem('nx_nodim')) {
+    G('install-wrap').innerHTML = `<div class="ibanner">
+      <p>📲 <strong>Installe l'app</strong> sur ton téléphone pour un accès direct.</p>
+      <button class="ibtn" onclick="installPWA()">INSTALLER</button>
+      <button class="iclose" onclick="dismissPWA()" aria-label="Fermer">×</button>
+    </div>`;
+  }
+});
+function installPWA() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => { deferredInstall = null; G('install-wrap').innerHTML = ''; });
+}
+function dismissPWA() { localStorage.setItem('nx_nodim', '1'); G('install-wrap').innerHTML = ''; }
+window.addEventListener('appinstalled', () => { G('install-wrap').innerHTML = ''; toast('✓ App installée !'); });
+
+// ── SERVICE WORKER (offline) ──────────────────────────────────
+if ('serviceWorker' in navigator && isSecure) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+load();
+G('f-date').value = td();
+initVoice();
+
+// demo data on first launch
+if (events.length === 0) {
+  const t0 = td(), t1 = ds(new Date(Date.now() + 864e5)), t7 = ds(new Date(Date.now() + 7 * 864e5));
+  events = [
+    {id:uid(), name:'Raid Final — Tier S',  date:t0, time:'20:00', cat:'raid',    duration:180, reminder:1440,  notes:'Squad complet requis, TS obligatoire'},
+    {id:uid(), name:'Patch 4.2 Live',       date:t1, time:'10:00', cat:'patch',   duration:0,   reminder:60,    notes:'Nouveaux skins et équilibrages'},
+    {id:uid(), name:'RDV Dev Team',         date:t7, time:'14:30', cat:'rdv',     duration:60,  reminder:10080, notes:'Sprint review Q2 — salle Omega'}
+  ];
+  save();
+}
+
+renderDash();
+setInterval(() => checkRem(), 30000);   // check reminders every 30s
+setInterval(() => renderDash(), 60000); // refresh dashboard every 1min
+</script>
+</body>
+</html>
