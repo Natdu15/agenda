@@ -70,7 +70,9 @@ nav::-webkit-scrollbar{display:none}
   font-size:7px;min-width:13px;height:13px;border-radius:7px;
   display:flex;align-items:center;justify-content:center;padding:0 2px;
   font-family:'Share Tech Mono',monospace;pointer-events:none;
+  transition:opacity .2s;
 }
+.badge.hidden{opacity:0;pointer-events:none}
 
 /* ── MAIN SCROLL ── */
 .main{
@@ -532,6 +534,12 @@ function save() {
   localStorage.setItem('nx_nts', JSON.stringify(notifs));
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function setBadge(id, n) {
+  const el = G(id);
+  if (!el) return;
+  if (n > 0) { el.textContent = n; el.classList.remove('hidden'); }
+  else { el.textContent = ''; el.classList.add('hidden'); }
+}
 
 // ── DOM HELPERS ───────────────────────────────────────────────
 const G  = id => document.getElementById(id);
@@ -591,7 +599,7 @@ function renderDash() {
   G('st-today').textContent = events.filter(e => e.date === now).length;
   G('st-week').textContent  = events.filter(e => e.date >= now && e.date <= wk).length;
   G('st-soon').textContent  = events.filter(e => e.date >= now).length;
-  G('b-events').textContent = events.length;
+  setBadge('b-events', events.length);
 
   // upcoming
   const up = events.filter(e => e.date >= now)
@@ -618,7 +626,7 @@ function renderDash() {
 
   // alerts preview
   const unread = notifs.filter(n => !n.read).length;
-  G('b-notifs').textContent = unread || '0';
+  setBadge('b-notifs', unread);
   const rn = [...notifs].reverse().slice(0, 3);
   G('dash-notifs').innerHTML = rn.length
     ? rn.map(n => `
@@ -848,7 +856,7 @@ function checkRem(manual = false) {
   });
   if (added > 0) {
     save();
-    G('b-notifs').textContent = notifs.filter(n => !n.read).length;
+    setBadge('b-notifs', notifs.filter(n => !n.read).length);
     toast('⚡ ' + added + ' rappel(s) actif(s) !');
   } else if (manual) {
     toast('✓ Aucun nouveau rappel');
@@ -871,9 +879,25 @@ function scheduleRem(ev) {
 
 function reqNotif() {
   if (!('Notification' in window)) { toast('⚠ Notifications non supportées', true); return; }
+  if (Notification.permission === 'granted') { toast('✓ Notifications déjà activées !'); return; }
+  if (Notification.permission === 'denied') {
+    toast('⚠ Bloquées — autorise dans les paramètres du navigateur', true);
+    // Show extra help message in notifs panel
+    const info = document.createElement('div');
+    info.style.cssText = 'background:rgba(247,37,133,.07);border:1px solid rgba(247,37,133,.3);border-radius:3px;padding:12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6';
+    info.innerHTML = `<strong style="color:var(--c2);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px">NOTIFICATIONS BLOQUÉES</strong><br><br>
+      Pour les activer :<br>
+      <strong style="color:var(--text)">Chrome/Edge :</strong> clique sur le 🔒 dans la barre d'adresse → Notifications → Autoriser<br>
+      <strong style="color:var(--text)">Firefox :</strong> barre d'adresse → bouclier → Permissions → Notifications → Autoriser<br><br>
+      <em style="color:var(--text3)">Puis recharge la page.</em>`;
+    const list = G('notifs-list');
+    if (list.firstChild) list.insertBefore(info, list.firstChild);
+    else list.appendChild(info);
+    return;
+  }
   Notification.requestPermission().then(p => {
     if (p === 'granted') toast('✓ Notifications activées !');
-    else toast('⚠ Permission refusée', true);
+    else toast('⚠ Permission refusée — autorise dans les paramètres', true);
   });
 }
 
@@ -889,7 +913,7 @@ function renderNotifs() {
       <div class="notif-d">${new Date(n.ts).toLocaleString('fr-FR')}</div>
     </div>`).join('');
   notifs.forEach(n => n.read = true);
-  G('b-notifs').textContent = '0';
+  setBadge('b-notifs', 0);
   save();
 }
 function markRead(id, el) {
@@ -897,7 +921,7 @@ function markRead(id, el) {
   if (n) { n.read = true; save(); el.classList.remove('unread'); }
 }
 function clearNotifs() {
-  notifs = []; save(); renderNotifs(); G('b-notifs').textContent = '0'; toast('◌ Notifications effacées');
+  notifs = []; save(); renderNotifs(); setBadge('b-notifs', 0); toast('◌ Notifications effacées');
 }
 
 // ── VOICE ─────────────────────────────────────────────────────
@@ -1044,6 +1068,9 @@ if ('serviceWorker' in navigator && isSecure) {
 load();
 G('f-date').value = td();
 initVoice();
+// init badges hidden
+setBadge('b-events', 0);
+setBadge('b-notifs', 0);
 
 // demo data on first launch
 if (events.length === 0) {
